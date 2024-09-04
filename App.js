@@ -3,10 +3,6 @@ import { useState } from 'react';
 import { Alert, View, Text, TextInput, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from "./styles";  // Importando o styles corretamente
-import { jsx } from 'react/jsx-runtime';
-
-//add validação de code > 0
-//add função de olhar senha
 
 export default function App() {
   const [id, setId] = useState("");
@@ -15,15 +11,15 @@ export default function App() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  function validateEmail(email){
+  function validateEmail(email) {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email)
+    return regex.test(email);
   }
 
-  //criar um regex para a senha 
-  function validatePassword(password){
-    const regex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{5,}$/;
-    return regex.test(password)
+  // Criar um regex para a senha
+  function validatePassword(password) {
+    const regex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{5,}$/;
+    return regex.test(password);
   }
 
   function Clear() {
@@ -35,9 +31,12 @@ export default function App() {
   }
 
   async function Save() {
-    // Validação do id, email, senha e confirmação de senha antes de salvar
+    // Validação do id, name, email, senha e confirmação de senha antes de salvar
     if (id <= 0) {
       Alert.alert("Erro", "O código deve ser maior que 0.");
+      return;
+    } else if (!name) {
+      Alert.alert("Erro", "O nome é obrigatório.");
       return;
     } else if (!validateEmail(email)) {
       Alert.alert("Erro", "Por favor, insira um email válido.");
@@ -51,8 +50,8 @@ export default function App() {
     }
 
     let objUsuario = {
-      id : id,
-      name : name,
+      id: id,
+      name: name,
       email: email,
       password: password,
       confirmPassword: confirmPassword,
@@ -65,7 +64,7 @@ export default function App() {
 
   async function load() {
     const conteudoJson = await AsyncStorage.getItem("@usuario");
-    if (conteudoJson != null){
+    if (conteudoJson != null) {
       const objUsuario = JSON.parse(conteudoJson);
       setId(objUsuario.id);
       setName(objUsuario.name);
@@ -125,7 +124,7 @@ export default function App() {
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={load}>
-          <Text style = {styles.buttonText}>Load</Text>
+          <Text style={styles.buttonText}>Load</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={Clear}>
