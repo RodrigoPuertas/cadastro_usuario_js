@@ -5,6 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from "./styles";  // Importando o styles corretamente
 import { jsx } from 'react/jsx-runtime';
 
+//add validação de code > 0
+//add função de olhar senha
+
 export default function App() {
   const [id, setId] = useState("");
   const [name, setName] = useState("");
@@ -32,14 +35,17 @@ export default function App() {
   }
 
   async function Save() {
-    // Validação do email antes de salvar
-    if (!validateEmail(email)) {
+    // Validação do id, email, senha e confirmação de senha antes de salvar
+    if (id <= 0) {
+      Alert.alert("Erro", "O código deve ser maior que 0.");
+      return;
+    } else if (!validateEmail(email)) {
       Alert.alert("Erro", "Por favor, insira um email válido.");
       return;
     } else if (password != confirmPassword) {
       Alert.alert("Erro", "Senhas não estão iguais!");
       return;
-    }else if (!validatePassword(password)) {
+    } else if (!validatePassword(password)) {
       Alert.alert("Erro", "Senha muito fraca!");
       return;
     }
@@ -80,6 +86,7 @@ export default function App() {
         placeholder="code"
         onChangeText={(text) => setId(text)}
         value={id}
+        keyboardType="numeric" // Definindo o teclado numérico
       />
 
       <TextInput
@@ -111,8 +118,6 @@ export default function App() {
         onChangeText={(text) => setConfirmPassword(text)}
         value={confirmPassword}
       />
-
-    
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={Save}>
