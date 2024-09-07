@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
-import { Alert, View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { useState, useEffect } from 'react';
+import { Alert, View, Text, TextInput, TouchableOpacity, FlatList } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from "./styles";  // Importando o styles corretamente
 
@@ -10,13 +10,17 @@ export default function App() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [users, setUsers] = useState([]); // Lista de usuários
+
+  useEffect(() => {
+    loadUsers(); // Carrega os usuários ao inicializar o aplicativo
+  }, []);
 
   function validateEmail(email) {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
   }
 
-  // Criar um regex para a senha
   function validatePassword(password) {
     const regex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{5,}$/;
     return regex.test(password);
@@ -31,7 +35,6 @@ export default function App() {
   }
 
   async function Save() {
-    // Validação do id, name, email, senha e confirmação de senha antes de salvar
     if (id <= 0) {
       Alert.alert("Erro", "O código deve ser maior que 0.");
       return;
@@ -49,30 +52,30 @@ export default function App() {
       return;
     }
 
-    let objUsuario = {
+    let newUser = {
       id: id,
       name: name,
       email: email,
       password: password,
-      confirmPassword: confirmPassword,
     };
-    const stringJson = JSON.stringify(objUsuario);
 
-    await AsyncStorage.setItem("@usuario", stringJson);
-    Alert.alert("Salvo com sucesso!");
+    let updatedUsers = [...users, newUser]; // Adiciona o novo usuário à lista
+    setUsers(updatedUsers);
+
+    const stringJson = JSON.stringify(updatedUsers);
+    await AsyncStorage.setItem("@users", stringJson); // Salva a lista de usuários
+
+    Alert.alert("Usuário salvo com sucesso!");
+    Clear(); // Limpa os campos após o salvamento
   }
 
-  async function load() {
-    const conteudoJson = await AsyncStorage.getItem("@usuario");
+  async function loadUsers() {
+    const conteudoJson = await AsyncStorage.getItem("@users");
     if (conteudoJson != null) {
-      const objUsuario = JSON.parse(conteudoJson);
-      setId(objUsuario.id);
-      setName(objUsuario.name);
-      setEmail(objUsuario.email);
-      setPassword(objUsuario.password);
-      setConfirmPassword(objUsuario.confirmPassword);
+      const loadedUsers = JSON.parse(conteudoJson);
+      setUsers(loadedUsers);
     } else {
-      Alert.alert("Erro", "Não há dados cadastrados.");
+      Alert.alert("Não foi encontrado nenhum usuários cadastrados.");
     }
   }
 
@@ -123,14 +126,27 @@ export default function App() {
           <Text style={styles.buttonText}>Save</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={load}>
-          <Text style={styles.buttonText}>Load</Text>
+        <TouchableOpacity style={styles.button} onPress={loadUsers}>
+          <Text style={styles.buttonText}>Load Users</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={Clear}>
           <Text style={styles.buttonText}>Clear</Text>
         </TouchableOpacity>
       </View>
+
+      <Text style={styles.title}>Usuários Cadastrados:</Text>
+      <FlatList
+        data={users}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.userContainer}>
+            <Text style={styles.userText}>ID: {item.id}</Text>
+            <Text style={styles.userText}>Nome: {item.name}</Text>
+            <Text style={styles.userText}>Email: {item.email}</Text>
+          </View>
+        )}
+      />
 
       <StatusBar style="auto" />
     </View>
