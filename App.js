@@ -11,6 +11,7 @@ export default function App() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [users, setUsers] = useState([]); // Lista de usuários
+  const [editingUserId, setEditingUserId] = useState(null); // ID do usuário que está sendo editado
 
   useEffect(() => {
     loadUsers(); // Carrega os usuários ao inicializar o aplicativo
@@ -32,6 +33,7 @@ export default function App() {
     setEmail("");
     setPassword("");
     setConfirmPassword("");
+    setEditingUserId(null); // Limpa o ID do usuário em edição
   }
 
   async function Save() {
@@ -44,7 +46,7 @@ export default function App() {
     } else if (!validateEmail(email)) {
       Alert.alert("Erro", "Por favor, insira um email válido.");
       return;
-    } else if (password != confirmPassword) {
+    } else if (password !== confirmPassword) {
       Alert.alert("Erro", "Senhas não estão iguais!");
       return;
     } else if (!validatePassword(password)) {
@@ -52,31 +54,50 @@ export default function App() {
       return;
     }
 
-    let newUser = {
-      id: id,
-      name: name,
-      email: email,
-      password: password,
-    };
+    let updatedUsers;
+    if (editingUserId !== null) {
+      // Edita o usuário existente
+      updatedUsers = users.map(user => 
+        user.id === editingUserId 
+          ? { id: editingUserId, name, email, password }
+          : user
+      );
+      setEditingUserId(null); // Finaliza a edição
+    } else {
+      // Adiciona um novo usuário
+      updatedUsers = [...users, { id, name, email, password }];
+    }
 
-    let updatedUsers = [...users, newUser]; // Adiciona o novo usuário à lista
+    await AsyncStorage.setItem("@users", JSON.stringify(updatedUsers)); // Salva a lista de usuários
     setUsers(updatedUsers);
-
-    const stringJson = JSON.stringify(updatedUsers);
-    await AsyncStorage.setItem("@users", stringJson); // Salva a lista de usuários
-
     Alert.alert("Usuário salvo com sucesso!");
     Clear(); // Limpa os campos após o salvamento
   }
 
+  async function deleteUser(userId) {
+    let updatedUsersList = users.filter(user => user.id !== userId);
+    await AsyncStorage.setItem("@users", JSON.stringify(updatedUsersList));
+    setUsers(updatedUsersList);
+  }
+  
   async function loadUsers() {
     const conteudoJson = await AsyncStorage.getItem("@users");
-    if (conteudoJson != null) {
+    if (conteudoJson !== null) {
       const loadedUsers = JSON.parse(conteudoJson);
+      console.log(loadedUsers); // Adiciona isto para verificar a estrutura dos dados
       setUsers(loadedUsers);
     } else {
-      Alert.alert("Não foi encontrado nenhum usuários cadastrados.");
+      Alert.alert("Não foi encontrado nenhum usuário cadastrado.");
     }
+  }
+
+  function editUser(user) {
+    setId(user.id.toString());
+    setName(user.name);
+    setEmail(user.email);
+    setPassword(user.password);
+    setConfirmPassword(user.password);
+    setEditingUserId(user.id);
   }
 
   return (
@@ -123,7 +144,7 @@ export default function App() {
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={Save}>
-          <Text style={styles.buttonText}>Save</Text>
+          <Text style={styles.buttonText}>{editingUserId ? "Update" : "Save"}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={loadUsers}>
@@ -138,12 +159,26 @@ export default function App() {
       <Text style={styles.title}>Usuários Cadastrados:</Text>
       <FlatList
         data={users}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => (item.id ? item.id.toString() : "default_key")}
         renderItem={({ item }) => (
           <View style={styles.userContainer}>
             <Text style={styles.userText}>ID: {item.id}</Text>
             <Text style={styles.userText}>Nome: {item.name}</Text>
             <Text style={styles.userText}>Email: {item.email}</Text>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity 
+                style={styles.button} 
+                onPress={() => editUser(item)}
+              >
+                <Text style={styles.buttonText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.button} 
+                onPress={() => deleteUser(item.id)}
+              >
+                <Text style={styles.buttonText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       />
