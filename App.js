@@ -54,18 +54,25 @@ export default function App() {
       return;
     }
 
-    let updatedUsers;
+    let updatedUsers = [...users];
+    const existingUserIndex = users.findIndex(user => user.id === id);
+
+    if (existingUserIndex !== -1 && editingUserId !== id) {
+      Alert.alert("Erro", "O código já está cadastrado!");
+      return;
+    }
+
     if (editingUserId !== null) {
       // Edita o usuário existente
-      updatedUsers = users.map(user => 
-        user.id === editingUserId 
-          ? { id: editingUserId, name, email, password }
+      updatedUsers = users.map(user =>
+        user.id === editingUserId
+          ? { id: id, name, email, password }
           : user
       );
       setEditingUserId(null); // Finaliza a edição
     } else {
       // Adiciona um novo usuário
-      updatedUsers = [...users, { id, name, email, password }];
+      updatedUsers.push({ id, name, email, password });
     }
 
     await AsyncStorage.setItem("@users", JSON.stringify(updatedUsers)); // Salva a lista de usuários
