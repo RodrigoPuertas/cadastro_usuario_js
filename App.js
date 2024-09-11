@@ -4,6 +4,8 @@ import { Alert, View, Text, TextInput, TouchableOpacity, FlatList } from 'react-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import styles from "./styles";  // Importando o styles corretamente
 
+// colocar keyboard.dismiss() para sair do teclado
+
 export default function App() {
   const [id, setId] = useState("");
   const [name, setName] = useState("");

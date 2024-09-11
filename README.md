@@ -1,6 +1,6 @@
 # Cadastro de Usuário em React Native
 
-Este é o meu **primeiro projeto** em **React Native**. O aplicativo permite o cadastro de usuários com validação de e-mail e senha.
+Este é o meu **primeiro projeto** em **React Native**. O aplicativo permite o cadastro de usuários com validação de e-mail e senha salvando em JSON no próprio dispositivo.
 
 ## Funcionalidades
 
@@ -31,5 +31,6 @@ Este é o meu **primeiro projeto** em **React Native**. O aplicativo permite o c
 ## Uso
 
 Para iniciar o aplicativo, execute:
-```bash
-npm start
+    ```bash
+    npx expo start
+    ```
